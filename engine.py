@@ -1,9 +1,3 @@
-"""Calculation engine for the Macro Calculator.
-
-Pure Python with no GUI dependencies, so it can be unit-tested on its own
-and called from the Tkinter layer.
-"""
-
 from dataclasses import dataclass
 
 KCAL_PER_GRAM = {"protein": 4, "carbs": 4, "fat": 9}
