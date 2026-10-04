@@ -1,3 +1,9 @@
+"""Calculation engine for the Macro Calculator.
+
+Pure Python with no GUI dependencies, so it can be unit-tested on its own
+and called from the Tkinter layer.
+"""
+
 from dataclasses import dataclass
 
 KCAL_PER_GRAM = {"protein": 4, "carbs": 4, "fat": 9}
@@ -13,7 +19,7 @@ ACTIVITY_MULTIPLIERS = {
 GOAL_ADJUSTMENTS = {
     "lose": -500,
     "maintain": 0,
-    "gain": 300,
+    "gain": 500,
 }
 
 # Fractions of total calories: (protein, carbs, fat)
