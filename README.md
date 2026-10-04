@@ -38,3 +38,6 @@ Then the calories get split into protein, carbs, and fat by percentage. You can 
 - PyInstaller to turn it into a single `.exe`
 - VS Code
 
+## Current Progress:
+
+
