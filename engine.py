@@ -106,6 +106,53 @@ def calculate(sex: str, age: int, height_cm: float, weight_kg: float,
     return Results(bmr, tdee, calories, protein_g, carbs_g, fat_g)
 
 
+KCAL_PER_KG = 7700  # approx. energy in 1 kg of body weight change
+MIN_CALORIES = {"male": 1500, "female": 1200}  # commonly suggested daily floors
+
+
+@dataclass
+class Projection:
+    points: list          # [(week, weight_kg), ...]; last point is the goal if reached
+    reached: bool
+    intake: float         # daily calories eaten during the projection
+    weekly_change_kg: float  # change in the first week
+
+
+def project_weight(sex: str, age: int, height_cm: float, weight_kg: float,
+                   activity: str, target_kg: float, daily_adjust: float,
+                   max_weeks: int = 156) -> Projection:
+    """Week-by-week weight projection toward target_kg.
+
+    Intake is fixed at (starting TDEE +/- daily_adjust). Each week the burn is
+    recalculated at the new weight, so progress slows as weight changes.
+    """
+    validate_inputs(sex, age, height_cm, weight_kg, activity, "maintain")
+    if not 30 <= target_kg <= 300:
+        raise ValueError("Target weight must be between 30 and 300 kg.")
+    if abs(target_kg - weight_kg) < 0.05:
+        raise ValueError("Your target is the same as your current weight.")
+
+    losing = target_kg < weight_kg
+    adjust = -abs(daily_adjust) if losing else abs(daily_adjust)
+
+    def burn_at(w):
+        return calculate_tdee(calculate_bmr(sex, age, height_cm, w), activity)
+
+    intake = burn_at(weight_kg) + adjust
+    weekly = (intake - burn_at(weight_kg)) * 7 / KCAL_PER_KG
+    points = [(0.0, weight_kg)]
+    w = weight_kg
+    for week in range(1, max_weeks + 1):
+        new_w = w + (intake - burn_at(w)) * 7 / KCAL_PER_KG
+        if (new_w <= target_kg) if losing else (new_w >= target_kg):
+            frac = (w - target_kg) / (w - new_w)
+            points.append((week - 1 + frac, target_kg))
+            return Projection(points, True, intake, weekly)
+        points.append((float(week), new_w))
+        w = new_w
+    return Projection(points, False, intake, weekly)
+
+
 if __name__ == "__main__":
     r = calculate("male", 25, 178, 75, "moderate", "maintain")
     print(f"BMR:      {r.bmr:.0f} kcal")
